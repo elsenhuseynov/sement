@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sement Çəkiləri — Qeydiyyat və Hesabat</title>
+
+<!-- Google Font: Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<!-- Supabase JS Client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-light: #eff6ff;
+    --primary-border: #bfdbfe;
+    --accent: #7c3aed;
+    --success: #10b981;
+    --success-hover: #059669;
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --bg-main: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 12px 28px -6px rgba(15, 23, 42, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    padding: 12px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding-bottom: 40px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    margin-bottom: 14px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s ease;
+  }
+  .card:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: var(--text-main); }
+  h2 { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: var(--text-main); }
+
+  /* Buttons */
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+  }
+  button:active:not(:disabled) { transform: scale(0.98); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 2px 6px rgba(37,99,235,0.25); }
+  .btn-primary:hover:not(:disabled) { background: var(--primary-hover); box-shadow: 0 4px 10px rgba(37,99,235,0.35); }
+
+  .btn-success { background: var(--success); color: #fff; box-shadow: 0 2px 6px rgba(16,185,129,0.25); }
+  .btn-success:hover:not(:disabled) { background: var(--success-hover); box-shadow: 0 4px 10px rgba(16,185,129,0.35); }
+
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover:not(:disabled) { background: var(--danger-hover); }
+
+  .btn-ghost { background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; }
+  .btn-ghost:hover:not(:disabled) { background: #e2e8f0; color: #0f172a; }
+  .btn-ghost.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  /* Form Elements */
+  input, select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    font-family: inherit;
+    background: #fff;
+    color: var(--text-main);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+  }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .row > * { flex: 1; min-width: 140px; }
+  .muted { color: var(--text-muted); font-size: 13px; }
+  .hidden { display: none !important; }
+
+  /* App Navigation Header */
+  .app-header {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    padding: 14px 18px;
+    margin-bottom: 14px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .brand-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #fff;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 10px rgba(37,99,235,0.25);
+  }
+  .user-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f1f5f9;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    margin-top: 2px;
+  }
+  .user-badge.admin { background: #dbeafe; color: #1e40af; }
+  .user-badge.viewer { background: #fef3c7; color: #92400e; }
+
+  /* Segmented Tab Controls */
+  .nav-tabs {
+    display: flex;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: var(--radius-md);
+    gap: 4px;
+  }
+  .tab-btn {
+    border: none;
+    background: transparent;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+  }
+  .tab-btn.active {
+    background: #ffffff;
+    color: var(--text-main);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+  .tab-btn:hover:not(.active) {
+    color: var(--text-main);
+  }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .toolbar .spacer { flex: 1; }
+
+  /* Date Control Strip */
+  .date-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .date-strip input[type="date"] {
+    max-width: 170px;
+    padding: 8px 12px;
+    font-weight: 600;
+  }
+
+  /* Summary Box */
+  .summary-box {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #4338ca 100%);
+    color: #fff;
+    border-radius: var(--radius-lg);
+    padding: 18px 22px;
+    margin-bottom: 14px;
+    box-shadow: 0 10px 25px -5px rgba(37,99,235,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .summary-box .info-label { font-size: 13px; opacity: 0.9; font-weight: 500; }
+  .summary-box .big { font-size: 30px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.1; }
+  .summary-box .sub-ton { font-size: 14px; opacity: 0.85; font-weight: 600; margin-top: 2px; }
+
+  /* Day Card in Entries */
+  .day-card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .day-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .day-date {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .day-total {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    color: #1e40af;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 800;
+    border: 1px solid #bfdbfe;
+  }
+  .weights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .weight-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    padding: 6px 10px 6px 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    transition: all 0.15s;
+  }
+  .weight-item:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+  .weight-item .ton-hint {
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748b;
+  }
+  .weight-item button {
+    padding: 2px 6px;
+    font-size: 12px;
+    background: transparent;
+    color: #94a3b8;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .weight-item button:hover {
+    color: var(--danger);
+    background: #fee2e2;
+  }
+
+  .add-weight-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .add-weight-row input {
+    flex: 1;
+    font-weight: 700;
+    padding: 9px 14px;
+  }
+  .add-weight-row button {
+    white-space: nowrap;
+    padding: 9px 16px;
+  }
+
+  /* ==================== MODERN REPORT HERO ==================== */
+  .report-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%);
+    color: #fff;
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    margin-bottom: 16px;
+    box-shadow: 0 12px 30px -8px rgba(37,99,235,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  .report-hero::after {
+    content: '';
+    position: absolute;
+    right: -30px;
+    top: -30px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.12), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .report-hero .rh-label { font-size: 13px; opacity: 0.85; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .report-hero .rh-value {
+    font-size: 38px;
+    font-weight: 900;
+    margin-top: 4px;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+  .report-hero .rh-ton {
+    font-size: 16px;
+    opacity: 0.9;
+    font-weight: 600;
+    color: #93c5fd;
+    margin-top: 2px;
+  }
+  .report-hero .rh-meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    font-size: 13px;
+    opacity: 0.95;
+    flex-wrap: wrap;
+    background: rgba(255,255,255,0.1);
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(4px);
+  }
+  .report-hero .rh-meta b { font-weight: 700; color: #fff; }
+
+  .section-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 24px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    width: 4px;
+    height: 18px;
+    background: var(--primary);
+    border-radius: 4px;
+  }
+
+  /* ==================== GÜNDƏLİK PAYLANMA (FIXED BAR CHART) ==================== */
+  .chart-wrapper {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+  }
+  
+  .chart-header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .chart-active-pill {
+    background: #eff6ff;
+    color: #1d4ed8;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 12px;
+    border: 1px solid #bfdbfe;
+    transition: all 0.2s;
+  }
+
+  /* 
+    CRITICAL FIX: 
+    1. height: 210px with padding-top: 40px ensures labels ABOVE tall bars NEVER get cut off by overflow:hidden.
+    2. Labels are permanently visible and nicely positioned.
+    3. Added touch / click highlight interaction for mobile and desktop.
+  */
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 210px;
+    padding: 45px 8px 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+  }
+  .bar-chart::-webkit-scrollbar {
+    height: 6px;
+  }
+  .bar-chart::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+  .bar-chart::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+
+  .bar-col {
+    flex: 0 0 auto;
+    width: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+  }
+
+  .bar-fill {
+    width: 100%;
+    background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+    border-radius: 8px 8px 2px 2px;
+    transition: height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s;
+    min-height: 8px;
+    position: relative;
+  }
+  .bar-col:hover .bar-fill,
+  .bar-col.selected .bar-fill {
+    background: linear-gradient(180deg, #38bdf8 0%, #1d4ed8 100%);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--primary);
+  }
+
+  /* Fixed label above bar: Always visible, unclipped */
+  .bar-fill .bar-val {
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 800;
+    color: #1e3a8a;
+    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2px 5px;
+    border-radius: 6px;
+    border: 1px solid #bfdbfe;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    pointer-events: none;
+    line-height: 1.1;
+  }
+  .bar-col:hover .bar-val,
+  .bar-col.selected .bar-val {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    transform: translateX(-50%) scale(1.08);
+    z-index: 10;
+  }
+
+  .bar-day {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 6px;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .bar-col.selected .bar-day {
+    color: var(--primary);
+  }
+
+  /* Day cards in report */
+  .rep-day {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .rep-day:hover {
+    box-shadow: var(--shadow-md);
+  }
+  .rep-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .rep-day-date { font-weight: 800; font-size: 15px; color: var(--text-main); }
+  .rep-day-count { font-size: 12px; color: #94a3b8; font-weight: 600; margin-left: 6px; }
+  .rep-day-total {
+    background: linear-gradient(135deg, #dbeafe, #eff6ff);
+    color: #1e40af;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 800;
+    border: 1px solid #bfdbfe;
+  }
+
+  /* Rəngli çiplər */
+  .rep-chips {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+  }
+  .rep-chip {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    color: #1e293b;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid #e2e8f0;
+    transition: all 0.18s;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .rep-chip:hover {
+    background: #ffffff;
+    border-color: #93c5fd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(37,99,235,0.12);
+  }
+  .rep-chip small {
+    color: #6366f1;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .rep-chip .chip-value {
+    color: #1e40af;
+    font-size: 17px;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+  .rep-chip .chip-ton {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fff;
+    border-radius: var(--radius-lg);
+    border: 1px dashed #cbd5e1;
+  }
+  .empty-state .icon { font-size: 42px; margin-bottom: 10px; opacity: 0.6; }
+  .empty-state .msg { color: var(--text-muted); font-size: 14px; font-weight: 500; }
+
+  /* Toast Notification */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #0f172a;
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast.error { background: var(--danger); }
+  .toast.success { background: var(--success); }
+
+  /* Login Screen */
+  .login-wrap {
+    max-width: 380px;
+    margin: 60px auto;
+  }
+  .login-wrap .card {
+    padding: 28px 24px;
+  }
+  .login-wrap h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 22px;
+  }
+  .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #9ca3af;
+    margin-right: 6px;
+  }
+  .status-dot.ok { background: var(--success); }
+  .status-dot.err { background: var(--danger); }
+
+  @media (max-width: 600px) {
+    body { padding: 8px; }
+    .card { padding: 14px; border-radius: var(--radius-md); }
+    .app-header { padding: 12px 14px; }
+    .brand-icon { width: 36px; height: 36px; font-size: 18px; }
+    h1 { font-size: 18px; }
+    .nav-tabs { width: 100%; justify-content: space-around; order: 3; }
+    .tab-btn { flex: 1; text-align: center; padding: 8px 6px; font-size: 12px; }
+    .report-hero .rh-value { font-size: 30px; }
+    .bar-chart { height: 195px; padding-top: 40px; }
+    .bar-col { width: 40px; }
+    .rep-chips { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
+    .rep-chip .chip-value { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== GİRİŞ EKRANI ==================== -->
+<div id="loginScreen" class="login-wrap">
+  <div class="card">
+    <div style="text-align:center; margin-bottom: 12px;">
+      <div class="brand-icon" style="margin: 0 auto 12px; width: 50px; height: 50px; font-size: 24px;">🏗️</div>
+      <h1>Sement Çəkiləri</h1>
+      <p class="muted" style="font-size: 13px;">Giriş etmək üçün məlumatları daxil edin</p>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <label>İstifadəçi Rolu</label>
+      <select id="loginUser">
+        <option value="admin">Admin (tam hüquqlu)</option>
+        <option value="viewer">İzləyici (yalnız baxış)</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom:18px">
+      <label>Şifrə</label>
+      <input id="loginPass" type="password" placeholder="Şifrəni daxil edin">
+    </div>
+
+    <button class="btn-primary" style="width:100%; padding: 12px;" onclick="doLogin()">
+      <span>Daxil ol</span> ➔
+    </button>
+
+    <div style="margin-top:16px; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 12px; text-align:center; border: 1px solid #e2e8f0;">
+      <p class="muted">Standart şifrələr:</p>
+      <p style="margin-top:2px;"><b>admin</b> / <b>admin123</b> &bull; <b>viewer</b> / <b>viewer123</b></p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ƏSAS TƏTBİQ ==================== -->
+<div id="app" class="container hidden">
+  
+  <!-- Header Bar -->
+  <header class="app-header">
+    <div class="brand-area">
+      <div class="brand-icon">🏗️</div>
+      <div>
+        <h1>Sement Çəkiləri</h1>
+        <div id="userBadgeEl" class="user-badge admin">
+          <span class="status-dot ok"></span>
+          <span id="welcomeText">admin</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="btn-tab-entries" onclick="switchTab('entries')">📝 Qeydlər</button>
+      <button class="tab-btn" id="btn-tab-reports" onclick="switchTab('reports')">📊 Hesabat</button>
+      <button class="tab-btn" id="btn-tab-settings" onclick="switchTab('settings')">⚙️ Ayarlar</button>
+    </div>
+
+    <div>
+      <button class="btn-ghost" style="padding: 7px 12px; font-size: 12px; color: var(--danger);" onclick="logout()" title="Sistemdən çıxış">
+        Çıxış ⎋
+      </button>
+    </div>
+  </header>
+
+  <!-- ---------- TAB 1: QEYDLƏR ---------- -->
+  <div id="tab-entries">
+    <div class="card">
+      <div class="toolbar">
+        <div class="date-strip">
+          <button class="btn-ghost" onclick="changeDay(-1)" title="Əvvəlki gün">◀</button>
+          <input type="date" id="currentDate" onchange="renderEntries()">
+          <button class="btn-ghost" onclick="changeDay(1)" title="Sonrakı gün">▶</button>
+          <button class="btn-primary" style="padding: 8px 14px;" onclick="goToday()">Bu gün</button>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn-ghost" onclick="refreshData().then(renderEntries)" title="Yenilə">🔄 Yenilə</button>
+      </div>
+    </div>
+
+    <!-- Entries container -->
+    <div id="entriesList"></div>
+
+    <div class="card" style="text-align:center; padding: 12px;">
+      <button class="btn-ghost" style="width: 100%; max-width: 300px;" onclick="loadMoreDays()" id="loadMoreBtn">
+        ▼ Daha çox gün göstər
+      </button>
+    </div>
+  </div>
+
+  <!-- ---------- TAB 2: HESABAT ---------- -->
+  <div id="tab-reports" class="hidden">
+    <div class="card">
+      <h2>Tarix Aralığı Seçimi</h2>
+      <div class="row" style="margin-bottom:12px">
+        <button class="btn-ghost" onclick="quickRange('today')">Bu gün</button>
+        <button class="btn-ghost" onclick="quickRange('week')">Bu həftə</button>
+        <button class="btn-ghost" onclick="quickRange('month')">Bu ay</button>
+        <button class="btn-ghost" onclick="quickRange('lastMonth')">Keçən ay</button>
+        <button class="btn-ghost" onclick="quickRange('year')">Bu il</button>
+      </div>
+      <div class="row">
+        <div>
+          <label>Başlanğıc Tarixi</label>
+          <input type="date" id="repFrom" onchange="renderReport()">
+        </div>
+        <div>
+          <label>Son Tarix</label>
+          <input type="date" id="repTo" onchange="renderReport()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Generated Report Content -->
+    <div id="reportContent"></div>
+  </div>
+
+  <!-- ---------- TAB 3: AYARLAR ---------- -->
+  <div id="tab-settings" class="hidden">
+    <div class="card">
+      <h2>Supabase Bulud Bağlantısı</h2>
+      <p class="muted" style="margin-bottom:14px">
+        Məlumatların bütün telefon və kompüterlərdə sinxronlaşması üçün Supabase məlumatlarını daxil edin.
+      </p>
+      <div style="margin-bottom:12px">
+        <label>Supabase Project URL</label>
+        <input id="cfgUrl" placeholder="https://xxxxx.supabase.co">
+      </div>
+      <div style="margin-bottom:14px">
+        <label>Supabase Anon Key</label>
+        <input id="cfgKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
+      </div>
+      <div class="row">
+        <button class="btn-primary" onclick="saveConfig()">💾 Yadda saxla</button>
+        <button class="btn-success" onclick="testConnection()">🔌 Bağlantını yoxla</button>
+      </div>
+      <p id="connStatus" class="muted" style="margin-top:14px; font-weight: 500;">
+        <span class="status-dot"></span>Status: yoxlanılmayıb
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Supabase SQL Cədvəl Kodu</h2>
+      <p class="muted" style="margin-bottom:8px">Supabase panelində <b>SQL Editor</b> bölməsinə keçib bu kodu işə salın:</p>
+      <pre style="background:#0f172a;color:#34d399;padding:14px;border-radius:10px;overflow:auto;font-size:12px;font-family:monospace;line-height:1.4;">create table if not exists weights (
+  id uuid primary key default gen_random_uuid(),
+  day date not null,
+  value numeric not null,
+  created_at timestamptz default now()
+);
+alter table weights enable row level security;
+create policy "allow all" on weights for all using (true) with check (true);</pre>
+    </div>
+  </div>
+
+</div>
+
+<!-- Floating Toast -->
+<div id="toast" class="toast"></div>
+
+<script>
+/* ==================== KONFİQURASİYA VƏ VƏZİYYƏT ==================== */
+const LS_CFG = 'sement_cfg';
+const LS_SESSION = 'sement_session';
+const USERS = {
+  admin:  { pass: 'admin123',  role: 'admin'  },
+  viewer: { pass: 'viewer123', role: 'viewer' }
+};
+
+let cfg = { url: '', key: '' };
+let sb = null;
+let session = null;
+let offlineMode = true;
+let allWeights = [];
+let visibleDaysCount = 7;
+
+/* ==================== KÖMƏKÇİ FUNKSİYALAR ==================== */
+const $ = id => document.getElementById(id);
+const todayStr = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const fmtDate = s => {
+  if (!s) return '';
+  const [y,m,d] = s.split('-');
+  const dt = new Date(y, m-1, d);
+  const days = ['Bazar','Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə'];
+  return `${d}.${m}.${y} (${days[dt.getDay()]})`;
+};
+
+const fmtNum = n => Number(n).toLocaleString('az-AZ', { maximumFractionDigits: 2 });
+const dayDiff = (a,b) => Math.round((new Date(b)-new Date(a))/86400000);
+
+function toast(msg, type='') {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.className = 'toast ' + type, 2500);
+}
+
+/* ==================== YADDAŞ (STORAGE) ==================== */
+function loadCfg() {
+  try { cfg = JSON.parse(localStorage.getItem(LS_CFG) || '{}'); } catch(e){}
+  cfg.url = cfg.url || ''; cfg.key = cfg.key || '';
+  $('cfgUrl').value = cfg.url;
+  $('cfgKey').value = cfg.key;
+  if (cfg.url && cfg.key) initSupabase();
+}
+
+function saveCfgToLS() {
+  localStorage.setItem(LS_CFG, JSON.stringify(cfg));
+}
+
+function initSupabase() {
+  try {
+    sb = supabase.createClient(cfg.url, cfg.key);
+    offlineMode = false;
+  } catch(e) {
+    console.error(e);
+    sb = null;
+    offlineMode = true;
+  }
+}
+
+const LS_DATA = 'sement_data';
+function lsRead()  { try { return JSON.parse(localStorage.getItem(LS_DATA)||'[]'); } catch(e){ return []; } }
+function lsWrite(d){ localStorage.setItem(LS_DATA, JSON.stringify(d)); }
+
+/* ==================== GİRİŞ / SESSİYA ==================== */
+function doLogin() {
+  const u = $('loginUser').value;
+  const p = $('loginPass').value;
+  if (USERS[u] && USERS[u].pass === p) {
+    session = { user: u, role: USERS[u].role };
+    localStorage.setItem(LS_SESSION, JSON.stringify(session));
+    showApp();
+  } else {
+    toast('İstifadəçi adı və ya şifrə yanlışdır', 'error');
+  }
+}
+
+function logout() {
+  session = null;
+  localStorage.removeItem(LS_SESSION);
+  $('app').classList.add('hidden');
+  $('loginScreen').classList.remove('hidden');
+  $('loginPass').value = '';
+}
+
+function restoreSession() {
+  try { session = JSON.parse(localStorage.getItem(LS_SESSION)||'null'); } catch(e){}
+  if (session) showApp();
+}
+
+function showApp() {
+  $('loginScreen').classList.add('hidden');
+  $('app').classList.remove('hidden');
+
+  const badge = $('userBadgeEl');
+  if (session.role === 'admin') {
+    badge.className = 'user-badge admin';
+    $('welcomeText').textContent = 'Admin (Tam hüquqlu)';
+    $('btn-tab-settings').classList.remove('hidden');
+  } else {
+    badge.className = 'user-badge viewer';
+    $('welcomeText').textContent = 'İzləyici (Baxış)';
+    $('btn-tab-settings').classList.add('hidden');
+  }
+
+  $('currentDate').value = todayStr();
+  refreshData().then(() => {
+    renderEntries();
+    switchTab('entries');
+  });
+}
+
+/* ==================== TAB İDARƏETMƏSİ ==================== */
+function switchTab(name) {
+  ['entries','reports','settings'].forEach(t => {
+    const el = $('tab-'+t);
+    const btn = $('btn-tab-'+t);
+    if (el) el.classList.toggle('hidden', t !== name);
+    if (btn) btn.classList.toggle('active', t === name);
+  });
+  if (name === 'reports') renderReport();
+}
+
+/* ==================== MƏLUMAT ƏMƏLİYYATLARI ==================== */
+async function refreshData() {
+  if (sb) {
+    try {
+      const { data, error } = await sb.from('weights').select('*').order('day', {ascending:false});
+      if (error) throw error;
+      allWeights = (data||[]).map(r => ({ id: r.id, day: r.day, value: Number(r.value) }));
+      return;
+    } catch(e) {
+      console.warn('Supabase xətası, offline rejimə keçir:', e.message);
+      toast('Supabase xətası, lokal rejim', 'error');
+      sb = null; offlineMode = true;
+    }
+  }
+  allWeights = lsRead().map(r => ({ id: r.id, day: r.day, value: Number(r.value) }));
+}
+
+async function addWeight(day, value) {
+  if (session.role !== 'admin') return toast('Yalnız admin əlavə edə bilər', 'error');
+  if (!value || isNaN(value)) return;
+  const v = Number(value);
+  if (sb) {
+    const { data, error } = await sb.from('weights').insert([{ day, value: v }]).select().single();
+    if (error) { toast('Xəta: '+error.message, 'error'); return; }
+    allWeights.unshift({ id: data.id, day: data.day, value: Number(data.value) });
+  } else {
+    const rec = { id: 'local_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), day, value: v };
+    const d = lsRead(); d.unshift(rec); lsWrite(d);
+    allWeights.unshift(rec);
+  }
+  renderEntries();
+  toast(`Əlavə edildi: ${fmtNum(v)} kq`, 'success');
+}
+
+async function delWeight(id) {
+  if (session.role !== 'admin') return toast('Yalnız admin silə bilər', 'error');
+  if (!confirm('Bu çəkini silmək istədiyinizə əminsiniz?')) return;
+  if (sb) {
+    const { error } = await sb.from('weights').delete().eq('id', id);
+    if (error) { toast('Xəta: '+error.message, 'error'); return; }
+  } else {
+    lsWrite(lsRead().filter(r => r.id !== id));
+  }
+  allWeights = allWeights.filter(r => r.id !== id);
+  renderEntries();
+  toast('Silindi', 'success');
+}
+
+/* ==================== QEYDLƏR (ENTRIES) ==================== */
+function groupByDay() {
+  const map = {};
+  allWeights.forEach(w => {
+    if (!map[w.day]) map[w.day] = [];
+    map[w.day].push(w);
+  });
+  return map;
+}
+
+function changeDay(delta) {
+  const cur = $('currentDate').value || todayStr();
+  const d = new Date(cur);
+  d.setDate(d.getDate() + delta);
+  $('currentDate').value = d.toISOString().slice(0,10);
+  renderEntries();
+}
+
+function goToday() {
+  $('currentDate').value = todayStr();
+  renderEntries();
+}
+
+function renderEntries() {
+  const map = groupByDay();
+  const current = $('currentDate').value || todayStr();
+  const container = $('entriesList');
+  container.innerHTML = '';
+
+  const days = [];
+  const curD = new Date(current);
+  for (let i = 0; i < visibleDaysCount; i++) {
+    const d = new Date(curD); d.setDate(d.getDate() - i);
+    days.push(d.toISOString().slice(0,10));
+  }
+  Object.keys(map).forEach(k => { if (!days.includes(k)) days.push(k); });
+  days.sort((a,b) => b.localeCompare(a));
+
+  let grandTotal = 0;
+  days.forEach(day => {
+    const items = map[day] || [];
+    const total = items.reduce((s,x) => s + x.value, 0);
+    grandTotal += total;
+    container.appendChild(buildDayCard(day, items, total));
+  });
+
+  const grandTon = (grandTotal / 1000).toFixed(2);
+  const sum = document.createElement('div');
+  sum.className = 'summary-box';
+  sum.innerHTML = `
+    <div>
+      <div class="info-label">Göstərilən günlərin ümumi çəkisi (${days.length} gün)</div>
+      <div class="big">${fmtNum(grandTotal)} <span style="font-size:18px;font-weight:600">kq</span></div>
+      <div class="sub-ton">≈ ${fmtNum(grandTon)} Ton sement</div>
+    </div>
+    <div style="text-align:right">
+      <span style="background:rgba(255,255,255,0.2);padding:6px 12px;border-radius:12px;font-size:13px;font-weight:700">
+        ${allWeights.length} qeyd
+      </span>
+    </div>
+  `;
+  container.prepend(sum);
+}
+
+function buildDayCard(day, items, total) {
+  const card = document.createElement('div');
+  card.className = 'day-card';
+
+  const dayTon = (total / 1000).toFixed(2);
+  const header = document.createElement('div');
+  header.className = 'day-header';
+  header.innerHTML = `
+    <div class="day-date">
+      <span>📅 ${fmtDate(day)}</span>
+      <span class="muted" style="font-size:12px;font-weight:600">(${items.length} maşın)</span>
+    </div>
+    <div class="day-total">Cəmi: ${fmtNum(total)} kq <span style="font-size:11px;opacity:0.85">(${dayTon} t)</span></div>
+  `;
+  card.appendChild(header);
+
+  const w = document.createElement('div');
+  w.className = 'weights';
+  items.forEach((it, idx) => {
+    const el = document.createElement('div');
+    el.className = 'weight-item';
+    const itTon = (it.value / 1000).toFixed(2);
+    el.innerHTML = `
+      <span>#${idx+1}: <b>${fmtNum(it.value)}</b> kq</span>
+      <span class="ton-hint">(${itTon} t)</span>
+    `;
+    if (session.role === 'admin') {
+      const b = document.createElement('button');
+      b.innerHTML = '✕';
+      b.title = 'Sil';
+      b.onclick = () => delWeight(it.id);
+      el.appendChild(b);
+    }
+    w.appendChild(el);
+  });
+  card.appendChild(w);
+
+  if (session.role === 'admin') {
+    const row = document.createElement('div');
+    row.className = 'add-weight-row';
+    const inp = document.createElement('input');
+    inp.type = 'number';
+    inp.step = 'any';
+    inp.placeholder = 'Yeni çəki daxil edin (məsələn: 45650)';
+    const btn = document.createElement('button');
+    btn.className = 'btn-success';
+    btn.innerHTML = '<span>+ Əlavə et</span>';
+
+    const submit = async () => {
+      const v = inp.value.trim();
+      if (!v) return;
+      inp.value = '';
+      await addWeight(day, v);
+      inp.focus(); // Növbəti rəqəmi dərhal yazmaq üçün
+    };
+
+    btn.onclick = submit;
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+    row.appendChild(inp);
+    row.appendChild(btn);
+    card.appendChild(row);
+  }
+
+  return card;
+}
+
+function loadMoreDays() {
+  visibleDaysCount += 7;
+  renderEntries();
+}
+
+/* ==================== HESABAT (REPORTS) ==================== */
+function quickRange(kind) {
+  const today = new Date();
+  let from, to;
+  const iso = d => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  if (kind === 'today') {
+    from = to = iso(today);
+  } else if (kind === 'week') {
+    const d = new Date(today);
+    const dow = (d.getDay() + 6) % 7; // Bazar ertəsindən başla
+    d.setDate(d.getDate() - dow);
+    from = iso(d);
+    to = iso(today);
+  } else if (kind === 'month') {
+    from = iso(new Date(today.getFullYear(), today.getMonth(), 1));
+    to = iso(today);
+  } else if (kind === 'lastMonth') {
+    from = iso(new Date(today.getFullYear(), today.getMonth() - 1, 1));
+    to = iso(new Date(today.getFullYear(), today.getMonth(), 0));
+  } else if (kind === 'year') {
+    from = iso(new Date(today.getFullYear(), 0, 1));
+    to = iso(today);
+  }
+
+  $('repFrom').value = from;
+  $('repTo').value = to;
+  renderReport();
+}
+
+function renderReport() {
+  const from = $('repFrom').value;
+  const to   = $('repTo').value;
+  const container = $('reportContent');
+  container.innerHTML = '';
+
+  if (!from || !to) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">📅</div>
+      <div class="msg">Zəhmət olmasa tarix aralığı seçin</div></div>`;
+    return;
+  }
+  if (dayDiff(from, to) < 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div>
+      <div class="msg">Başlanğıc tarixi son tarixdən sonra ola bilməz</div></div>`;
+    return;
+  }
+
+  const map = groupByDay();
+  const inRange = Object.keys(map)
+    .filter(d => d >= from && d <= to)
+    .sort((a,b) => a.localeCompare(b));
+
+  const grand = inRange.reduce((s,d) => s + map[d].reduce((ss,x)=>ss+x.value,0), 0);
+  const totalRecords = inRange.reduce((s,d) => s + map[d].length, 0);
+  const grandTon = (grand / 1000).toFixed(2);
+  const avgDaily = inRange.length > 0 ? (grand / inRange.length / 1000).toFixed(2) : '0';
+
+  const dailyTotals = inRange.map(d => ({
+    day: d,
+    total: map[d].reduce((s,x)=>s+x.value,0)
+  }));
+
+  /* ---------- HERO KART ---------- */
+  const hero = document.createElement('div');
+  hero.className = 'report-hero';
+  hero.innerHTML = `
+    <div class="rh-label">Seçilmiş dövr üzrə yekun sement çəkisi</div>
+    <div class="rh-value">${fmtNum(grand)} <span style="font-size:22px;font-weight:600">kq</span></div>
+    <div class="rh-ton">≈ ${fmtNum(grandTon)} Ton sement</div>
+    <div class="rh-meta">
+      <span>📅 <b>${fmtDate(from)}</b> — <b>${fmtDate(to)}</b></span>
+      <span>⏱ <b>${inRange.length}</b> aktiv gün</span>
+      <span>📝 <b>${totalRecords}</b> qaimə</span>
+      <span>📊 Orta: <b>${fmtNum(avgDaily)}</b> t/gün</span>
+    </div>`;
+  container.appendChild(hero);
+
+  if (!inRange.length) {
+    container.insertAdjacentHTML('beforeend',
+      `<div class="empty-state"><div class="icon">📭</div>
+       <div class="msg">Bu aralıqda heç bir çəki qeydi tapılmadı</div></div>`);
+    return;
+  }
+
+  /* ---------- GÜNDƏLİK PAYLANMA (BAR CHART - FIX EDİLMİŞ) ---------- */
+  if (dailyTotals.length > 1) {
+    container.insertAdjacentHTML('beforeend', `<div class="section-title">Gündəlik paylanma</div>`);
+
+    const chartWrapper = document.createElement('div');
+    chartWrapper.className = 'chart-wrapper';
+
+    // Seçilmiş barın detallarını dərhal göstərən interaktiv başlıq paneli
+    const maxVal = Math.max(...dailyTotals.map(d => d.total));
+    const maxDayObj = dailyTotals.find(d => d.total === maxVal);
+    const maxDayLabel = maxDayObj ? `${fmtDate(maxDayObj.day)} (${fmtNum(maxDayObj.total)} kq)` : '';
+
+    chartWrapper.innerHTML = `
+      <div class="chart-header-info">
+        <span id="chartActiveInfo">Bara toxunaraq tam detallara baxın</span>
+        <span class="chart-active-pill">Pik gün: ${maxDayObj ? fmtDate(maxDayObj.day).split(' ')[0] : '-'}</span>
+      </div>
+    `;
+
+    const chart = document.createElement('div');
+    chart.className = 'bar-chart';
+
+    // AVAILABLE HEIGHT: 120px max bar height gives 45px guaranteed headroom for unclipped labels
+    const availableHeight = 120;
+
+    dailyTotals.forEach(d => {
+      const h = maxVal ? Math.max(8, (d.total / maxVal) * availableHeight) : 8;
+      const col = document.createElement('div');
+      col.className = 'bar-col';
+      col.title = `${fmtDate(d.day)} — ${fmtNum(d.total)} kq`;
+
+      // Hər barın üstündə çəki aydın görünür və heç vaxt kəsilmir
+      col.innerHTML = `
+        <div class="bar-fill" style="height:${h}px">
+          <div class="bar-val">${fmtNum(d.total)}</div>
+        </div>
+        <div class="bar-day">${d.day.slice(8)}.${d.day.slice(5,7)}</div>
+      `;
+
+      // Klik/Toxunma zamanı seçmə və yuxarıda detallı göstərmə
+      col.onclick = () => {
+        document.querySelectorAll('.bar-col').forEach(c => c.classList.remove('selected'));
+        col.classList.add('selected');
+        const tonVal = (d.total / 1000).toFixed(2);
+        $('chartActiveInfo').innerHTML = `<b>${fmtDate(d.day)}:</b> <span style="color:#1d4ed8;font-weight:800;">${fmtNum(d.total)} kq</span> (${tonVal} ton)`;
+      };
+
+      chart.appendChild(col);
+    });
+
+    chartWrapper.appendChild(chart);
+    container.appendChild(chartWrapper);
+  }
+
+  /* ---------- GÜNLÜK DETALLAR ---------- */
+  container.insertAdjacentHTML('beforeend', `<div class="section-title">Günlük detallar</div>`);
+
+  [...inRange].reverse().forEach(day => {
+    const items = map[day];
+    const total = items.reduce((s,x)=>s+x.value,0);
+    const dayTon = (total / 1000).toFixed(2);
+    const card = document.createElement('div');
+    card.className = 'rep-day';
+
+    const chips = items.map((it, i) => {
+      const itTon = (it.value / 1000).toFixed(2);
+      return `
+        <div class="rep-chip">
+          <small>Reys #${i+1}</small>
+          <span class="chip-value">${fmtNum(it.value)}</span>
+          <span class="chip-ton">${itTon} ton</span>
+        </div>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="rep-day-header">
+        <div>
+          <span class="rep-day-date">${fmtDate(day)}</span>
+          <span class="rep-day-count">${items.length} maşın</span>
+        </div>
+        <div class="rep-day-total">${fmtNum(total)} kq <span style="font-size:12px;opacity:0.85">(${dayTon} t)</span></div>
+      </div>
+      <div class="rep-chips">${chips}</div>`;
+    container.appendChild(card);
+  });
+}
+
+/* ==================== AYARLAR (SETTINGS) ==================== */
+function saveConfig() {
+  cfg.url = $('cfgUrl').value.trim();
+  cfg.key = $('cfgKey').value.trim();
+  saveCfgToLS();
+  if (cfg.url && cfg.key) initSupabase();
+  else { sb = null; offlineMode = true; }
+  toast('Ayarlar yadda saxlanıldı', 'success');
+}
+
+async function testConnection() {
+  const statusEl = $('connStatus');
+  statusEl.innerHTML = '<span class="status-dot"></span>Yoxlanılır...';
+  const url = $('cfgUrl').value.trim();
+  const key = $('cfgKey').value.trim();
+  if (!url || !key) {
+    statusEl.innerHTML = '<span class="status-dot err"></span>URL və Key boş ola bilməz!';
+    return;
+  }
+  try {
+    const test = supabase.createClient(url, key);
+    const { error } = await test.from('weights').select('id').limit(1);
+    if (error) {
+      statusEl.innerHTML = `<span class="status-dot err"></span>Xəta: ${error.message}`;
+    } else {
+      statusEl.innerHTML = '<span class="status-dot ok"></span>Uğurlu bağlantı ✔ Məlumat bazası hazırdır!';
+      toast('Bağlantı uğurludur', 'success');
+    }
+  } catch(e) {
+    statusEl.innerHTML = `<span class="status-dot err"></span>Bağlanmadı: ${e.message}`;
+  }
+}
+
+/* ==================== BAŞLANĞIC (INIT) ==================== */
+loadCfg();
+restoreSession();
+
+// Enter düyməsi ilə sürətli giriş
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !$('loginScreen').classList.contains('hidden')) {
+    doLogin();
+  }
+});
+</script>
+</body>
+</html>
