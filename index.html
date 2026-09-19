@@ -714,14 +714,9 @@
       <input id="loginPass" type="password" placeholder="Şifrəni daxil edin">
     </div>
 
-    <button class="btn-primary" style="width:100%; padding: 12px;" onclick="doLogin()">
+    <button class="btn-primary" style="width:100%; padding: 12px; margin-top: 6px;" onclick="doLogin()">
       <span>Daxil ol</span> ➔
     </button>
-
-    <div style="margin-top:16px; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 12px; text-align:center; border: 1px solid #e2e8f0;">
-      <p class="muted">Standart şifrələr:</p>
-      <p style="margin-top:2px;"><b>admin</b> / <b>admin123</b> &bull; <b>viewer</b> / <b>viewer123</b></p>
-    </div>
   </div>
 </div>
 
@@ -855,11 +850,14 @@ create policy "allow all" on weights for all using (true) with check (true);</pr
 const LS_CFG = 'sement_cfg';
 const LS_SESSION = 'sement_session';
 const USERS = {
-  admin:  { pass: 'admin123',  role: 'admin'  },
-  viewer: { pass: 'viewer123', role: 'viewer' }
+  admin:  { pass: 'Elsen0123456789-', role: 'admin'  },
+  viewer: { pass: 'Teymur2026',       role: 'viewer' }
 };
 
-let cfg = { url: '', key: '' };
+const DEFAULT_URL = 'https://cbmyobxshzwxxlvdsgtz.supabase.co';
+const DEFAULT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNibXlvYnhzaHp3eHhsdmRzZ3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4MDY1MjAsImV4cCI6MjEwNTM4MjUyMH0.TEPmKRbFq81Pq2F0chQw5T4OvuXPPcgDyuuP_5U9r6Q';
+
+let cfg = { url: DEFAULT_URL, key: DEFAULT_KEY };
 let sb = null;
 let session = null;
 let offlineMode = true;
@@ -898,7 +896,8 @@ function toast(msg, type='') {
 /* ==================== YADDAŞ (STORAGE) ==================== */
 function loadCfg() {
   try { cfg = JSON.parse(localStorage.getItem(LS_CFG) || '{}'); } catch(e){}
-  cfg.url = cfg.url || ''; cfg.key = cfg.key || '';
+  cfg.url = cfg.url || DEFAULT_URL;
+  cfg.key = cfg.key || DEFAULT_KEY;
   $('cfgUrl').value = cfg.url;
   $('cfgKey').value = cfg.key;
   if (cfg.url && cfg.key) initSupabase();
