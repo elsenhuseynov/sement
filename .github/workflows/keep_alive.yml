@@ -1,0 +1,16 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    - cron: '0 6 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping_supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Database
+        run: |
+          curl -s -i \
+            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNibXlvYnhzaHp3eHhsdmRzZ3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4MDY1MjAsImV4cCI6MjEwNTM4MjUyMH0.TEPmKRbFq81Pq2F0chQw5T4OvuXPPcgDyuuP_5U9r6Q" \
+            "https://cbmyobxshzwxxlvdsgtz.supabase.co/rest/v1/weights?select=id&limit=1"
