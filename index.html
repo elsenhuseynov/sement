@@ -982,17 +982,23 @@ function switchTab(name) {
 }
 
 /* ==================== MƏLUMAT ƏMƏLİYYATLARI ==================== */
-async function refreshData() {
+async function refreshData(retryCount = 0) {
   if (sb) {
     try {
       const { data, error } = await sb.from('weights').select('*').order('day', {ascending:false});
       if (error) throw error;
       allWeights = (data||[]).map(r => ({ id: r.id, day: r.day, value: Number(r.value) }));
+      offlineMode = false;
       return;
     } catch(e) {
-      console.warn('Supabase xətası, offline rejimə keçir:', e.message);
-      toast('Supabase xətası, lokal rejim', 'error');
-      sb = null; offlineMode = true;
+      console.warn('Supabase bağlantı cəhdi:', e.message);
+      if (retryCount < 2) {
+        // Cold-start zamanı baza oyanana qədər 1.5 saniyə gözləyib təkrar yoxla
+        await new Promise(res => setTimeout(res, 1500));
+        return refreshData(retryCount + 1);
+      }
+      toast('Supabase oyanır, lokal məlumatlar göstərilir', 'info');
+      offlineMode = true;
     }
   }
   allWeights = lsRead().map(r => ({ id: r.id, day: r.day, value: Number(r.value) }));
@@ -1002,15 +1008,25 @@ async function addWeight(day, value) {
   if (session.role !== 'admin') return toast('Yalnız admin əlavə edə bilər', 'error');
   if (!value || isNaN(value)) return;
   const v = Number(value);
+  
   if (sb) {
-    const { data, error } = await sb.from('weights').insert([{ day, value: v }]).select().single();
-    if (error) { toast('Xəta: '+error.message, 'error'); return; }
-    allWeights.unshift({ id: data.id, day: data.day, value: Number(data.value) });
-  } else {
-    const rec = { id: 'local_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), day, value: v };
-    const d = lsRead(); d.unshift(rec); lsWrite(d);
-    allWeights.unshift(rec);
+    try {
+      const { data, error } = await sb.from('weights').insert([{ day, value: v }]).select().single();
+      if (!error && data) {
+        allWeights.unshift({ id: data.id, day: data.day, value: Number(data.value) });
+        renderEntries();
+        toast(`Əlavə edildi: ${fmtNum(v)} kq`, 'success');
+        return;
+      }
+    } catch(err) {
+      console.warn('Supabase birbaşa yazılmadı:', err);
+    }
   }
+
+  // Ehtiyat olaraq lokalda saxla
+  const rec = { id: 'local_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), day, value: v };
+  const d = lsRead(); d.unshift(rec); lsWrite(d);
+  allWeights.unshift(rec);
   renderEntries();
   toast(`Əlavə edildi: ${fmtNum(v)} kq`, 'success');
 }
@@ -1363,13 +1379,23 @@ async function testConnection() {
     const test = supabase.createClient(url, key);
     const { error } = await test.from('weights').select('id').limit(1);
     if (error) {
-      statusEl.innerHTML = `<span class="status-dot err"></span>Xəta: ${error.message}`;
+      if (error.message && error.message.includes('Failed to fetch')) {
+        statusEl.innerHTML = `<span class="status-dot err"></span><b>Layihə dondurulub (Paused):</b> Supabase pulsuz layihəniz bir müddət qeyri-aktiv qaldığı üçün dayandırılıb. Zəhmət olmasa <a href="https://supabase.com/dashboard" target="_blank" style="color:#2563eb;text-decoration:underline;font-weight:700">supabase.com/dashboard</a>-a girib <b>"Restore project"</b> düyməsinə klikləyin.`;
+        toast('Layihə Supabase-də dondurulub (Restore edin)', 'error');
+      } else {
+        statusEl.innerHTML = `<span class="status-dot err"></span>Xəta: ${error.message}`;
+      }
     } else {
       statusEl.innerHTML = '<span class="status-dot ok"></span>Uğurlu bağlantı ✔ Məlumat bazası hazırdır!';
       toast('Bağlantı uğurludur', 'success');
     }
   } catch(e) {
-    statusEl.innerHTML = `<span class="status-dot err"></span>Bağlanmadı: ${e.message}`;
+    if (e.message && e.message.includes('Failed to fetch')) {
+      statusEl.innerHTML = `<span class="status-dot err"></span><b>Layihə dondurulub (Paused):</b> Supabase pulsuz layihəniz qeyri-aktivliyə görə dayandırılıb. Zəhmət olmasa <a href="https://supabase.com/dashboard" target="_blank" style="color:#2563eb;text-decoration:underline;font-weight:700">supabase.com/dashboard</a>-a girib <b>"Restore project"</b> düyməsinə klikləyin.`;
+      toast('Layihə Supabase-də dondurulub (Restore edin)', 'error');
+    } else {
+      statusEl.innerHTML = `<span class="status-dot err"></span>Bağlanmadı: ${e.message}`;
+    }
   }
 }
 
